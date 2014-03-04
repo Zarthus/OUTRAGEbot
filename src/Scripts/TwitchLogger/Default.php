@@ -2,15 +2,12 @@
 /**
  *	OUTRAGEbot - PHP 5.3 based IRC bot
  *
- *	Author:		David Weston <westie@typefish.co.uk>
+ *	Author:		Zarthus
  *
- *	Version:        2.0.0-Alpha
- *	Git commit:     0638fa8bb13e1aca64885a4be9e6b7d78aab0af7
- *	Committed at:   Wed Aug 24 23:16:55 BST 2011
+ *	Licence:	MIT
  *
- *	Licence:	http://www.typefish.co.uk/licences/
- *
- *	This is obviously, the blank script.
+ *	TwitchLogger
+ *	Log commands and chatter from twitch.tv/twitchplayspokemon
  */
 
 
@@ -72,22 +69,29 @@ class TwitchLogger extends Script
 	{
 		return '[' .  date("Y-m-d H:i:s") . ']';
 	}
+
+	/*
+		Thanks to nasonfish and FiXato for the improved regular expressions
+		
+		# Verify the command is completely valid and does not contain invalid combinations
+		/^(?i:((?<command>a|b|up|down|left|right|start|select)[2-9]?(?!\k<command>)){1,4}|democracy|anarchy)$/ 
+		
+		# Verify the message contains a command
+		/(?i:anarchy|democracy|(?:a|b|up|down|left|right|start|select)[2-9]?)/
+		
+		# Alternative solution that allows to capture each command, quantifier, complete command and mode from a single regex. Far less legible though.
+		# /^(?i:(?<cmd1complete>(?<cmd1>a|b|up|down|left|right|start|select)(?<cmd1quantifier>[2-9]?)(?!\k<cmd1>))(?<cmd2complete>(?<cmd2>a|b|up|down|left|right|start|select)(?<cmd2quantifier>[2-9]?))?(?!\k<cmd2>)(?<cmd3complete>(?<cmd3>a|b|up|down|left|right|start|select)(?<cmd3quantifier>[2-9]?))?(?!\k<cmd3>)(?<cmd4complete>(?<cmd4>a|b|up|down|left|right|start|select)(?<cmd4quantifier>[2-9]?))?(?!\k<cmd4>)|(?<mode>democracy|anarchy))$/ 
+	*/
 	
 	public function isTwitchCommand($msg)
 	{
-		//$regex = '/^(a|b|up|left|down|right|start)[0-9]?((a|b|up|left|down|right|start)[0-9]?)?((a|b|up|left|down|right|start)[0-9]?)?((a|b|up|left|down|right|start)[0-9]?)?$/i';
-		/*
-		$regex = "^((((?<a>a)|(?<b>b)|(?<up>up)|(?<left>left)|(?<down>down)|(?<right>right)|(?<start>start))[2-9]?)" .
-				 "(((?(a)^$|(?<a2>a))|(?(b)^$|(?<b2>b))|(?(up)^$|(?<up2>up))|(?(left)^$|(?<left2>left))|(?(right)^$|(?<right2>right))|(?(down)^$|(?<down2>down))|(?(start)^$|(?<start2>start)))[2-9]?)?" .
-				 "(((?(a)^$|(?(a2)^$|(?<a3>a)))|(?(b)^$|(?(b2)^$|(?<b3>b)))|(?(up)^$|(?(up2)^$|(?<up3>up)))|(?(left)^$|(?(left2)^$|(?<left3>left)))|(?(right)^$|(?(right2)^$|(?<right3>right)))|(?(down)^$|(?(down2)^$|(?<down3>down)))|(?(start)^$|(?(start2)^$|(?<start3>start))))[2-9]?)?" .
-				 "(((?(a)^$|(?(a2)^$|(?(a3)^$|a)))|(?(b)^$|(?(b2)^$|(?(b3)^$|b)))|(?(up)^$|(?(up2)^$|(?(up3)^$|up)))|(?(left)^$|(?(left2)^$|(?(left3)^$|left)))|(?(right)^$|(?(right2)^$|(?(right3)^$|right)))|(?(down)^$|(?(down2)^$|(?(down3)^$|down)))|(?(start)^$|(?(start2)^$|(?(start3)^$|start))))[2-9]?)?|anarchy|democracy)$/ix";
-		*/
-
-		$regex = "/^((((?<a>a)|(?<b>b)|(?<up>up)|(?<left>left)|(?<down>down)|(?<right>right)|(?<start>start))[2-9]?)" .
-				 "(((?(a)^$|(?<a2>a))|(?(b)^$|(?<b2>b))|(?(up)^$|(?<up2>up))|(?(left)^$|(?<left2>left))|(?(right)^$|(?<right2>right))|(?(down)^$|(?<down2>down))|(?(start)^$|(?<start2>start)))[2-9]?)?" .
-				 "(((?(a)^$|(?(a2)^$|(?<a3>a)))|(?(b)^$|(?(b2)^$|(?<b3>b)))|(?(up)^$|(?(up2)^$|(?<up3>up)))|(?(left)^$|(?(left2)^$|(?<left3>left)))|(?(right)^$|(?(right2)^$|(?<right3>right)))|(?(down)^$|(?(down2)^$|(?<down3>down)))|(?(start)^$|(?(start2)^$|(?<start3>start))))[2-9]?)?" .
-				 "(((?(a)^$|(?(a2)^$|(?(a3)^$|a)))|(?(b)^$|(?(b2)^$|(?(b3)^$|b)))|(?(up)^$|(?(up2)^$|(?(up3)^$|up)))|(?(left)^$|(?(left2)^$|(?(left3)^$|left)))|(?(right)^$|(?(right2)^$|(?(right3)^$|right)))|(?(down)^$|(?(down2)^$|(?(down3)^$|down)))|(?(start)^$|(?(start2)^$|(?(start3)^$|start))))[2-9]?)?|anarchy|democracy)$/ix";		
-
-		return preg_match($regex, $msg) === 1;
+		// Verify the message contains something that is in the list of available commands.
+		if (preg_match('/(?i:anarchy|democracy|(?:a|b|up|down|left|right|start|select)[2-9]?)/', $msg) === 1) 
+		{
+			// If it is a valid command, verify it to be completely valid (and not a command that would not be processed by the real game, such as 'upup' or 'up10')
+			return preg_match('/^(?i:((?<command>a|b|up|down|left|right|start|select)[2-9]?(?!\k<command>)){1,4}|democracy|anarchy)$/', $msg) === 1;
+		}
+		
+		return false;
 	}
 }
