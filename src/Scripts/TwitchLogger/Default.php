@@ -33,7 +33,7 @@ class TwitchLogger extends Script
 		}
 		else
 		{
-			throw new Exception("The directory at {$this->directory} in does not exist, did you modify it to be your user?");
+			throw new Exception("The directory at " . LOG_DIRECTORY . " in does not exist, did you modify it to be your user?");
 		}
 	}
 
