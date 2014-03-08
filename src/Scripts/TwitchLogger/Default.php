@@ -10,17 +10,31 @@
  *	Log commands and chatter from twitch.tv/twitchplayspokemon
  */
 
+ /**
+ *	The directory to log to; if it does not exist the script will throw an exception
+ *
+ *	Either modify this to your own user, or the path you want to log to,
+ *	Needs a trailing slash.
+ */
+define("LOG_DIRECTORY", "/home/zarthus/twitchbot/logs/");
 
 class TwitchLogger extends Script
 {
 	public $commandsExecuted = 0;
-
+	
 	/**
 	 *	Called when the Script is loaded.
 	 */
 	public function onConstruct()
 	{
-		echo "Loaded Twitch Logger \n";
+		if (is_dir(LOG_DIRECTORY))
+		{
+			echo "Loaded Twitch Logger \n";
+		}
+		else
+		{
+			throw new Exception("The directory at " . LOG_DIRECTORY . " in does not exist, did you modify it to be your user?");
+		}
 	}
 
 
@@ -53,15 +67,15 @@ class TwitchLogger extends Script
 			$eMsg = addslashes(htmlentities($sMessage, ENT_QUOTES));
 			$this->commandsExecuted++;
 			
-			file_put_contents("/home/zarthus/twitchbot/logs/cmds.log", $ts . $sNickname . '/' . $this->commandsExecuted . ': ' . $eMsg . "\r\n", FILE_APPEND);
-			file_put_contents("/home/zarthus/twitchbot/logs/" . $eMsg . ".log", $ts . $sNickname . ': ' . $eMsg . " ({$this->commandsExecuted})\r\n", FILE_APPEND);
+			file_put_contents(LOG_DIRECTORY . "cmds.log", $ts . $sNickname . '/' . $this->commandsExecuted . ': ' . $eMsg . "\r\n", FILE_APPEND);
+			file_put_contents(LOG_DIRECTORY . $eMsg . ".log", $ts . $sNickname . ': ' . $eMsg . " ({$this->commandsExecuted})\r\n", FILE_APPEND);
 			
 		}
 		else
 		{
 			$eMsg = addslashes(htmlentities($sMessage, ENT_QUOTES));
 			
-			file_put_contents("/home/zarthus/twitchbot/logs/chat.log", $ts . $sNickname . ': ' . $eMsg . "\r\n", FILE_APPEND);
+			file_put_contents(LOG_DIRECTORY . "chat.log", $ts . $sNickname . ': ' . $eMsg . "\r\n", FILE_APPEND);
 		}
 	}
 	
